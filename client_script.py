@@ -3,15 +3,15 @@ from tkinter import *
 import socket 
 import threading
 
-def init(event=None):
-    global root
+def init(event=None):    # initial GUI window to accept Server_ip, port number and username.
+    global root            # global variable to access them outside the function
     global ip_entry
     global port_entry
     global name_entry
 
-    root = Tk()
+    root = Tk()                    # GUI window for client login
     root.geometry("330x170")
-    root.resizable(False,False)
+    root.resizable(False,False)        # restricting window resizing
     root.title("Server Configuration")
     
     lbl_ip = Label(root , text="SERVER IP", font=('B',15), fg='orange').place(x=20, y=15)
@@ -29,7 +29,7 @@ def init(event=None):
     btn = Button(root, text= 'Submit', command=chat_win, padx=3).place(x=125, y=115)
     root.mainloop()
 
-def chat_win(event=None):
+def chat_win(event=None):        # chat window
     global SERVER_IP
     global PORT
     global USERNAME
@@ -41,20 +41,20 @@ def chat_win(event=None):
     global win
     global recieving_thread
 
-    SERVER_IP = ip_entry.get()
+    SERVER_IP = ip_entry.get()        # assigning input server_ip, port, and username to a variable to use 
     PORT = int(port_entry.get())
     USERNAME = name_entry.get()
 
-    root.destroy()
-    win = Tk()
+    root.destroy()                # discarding first [initial] login window
+    win = Tk()                    # creating new window for chat system
     win.geometry("540x440")
-    win.resizable(False,False)
+    win.resizable(False,False)    # restricting window resizing
     win.title("Chat Room")
     
     message_frame = LabelFrame(win, height=365)
-    myCanvas = Canvas(message_frame)
+    myCanvas = Canvas(message_frame)    # creating a canvas within window to display sent/recieved messages
 
-    scrollbar = Scrollbar(message_frame, orient="vertical", command=myCanvas.yview)
+    scrollbar = Scrollbar(message_frame, orient="vertical", command=myCanvas.yview)    #scrollbar
     msg_Frame = LabelFrame(myCanvas)
 
     msg_Frame.bind('<Configure>', lambda e: myCanvas.configure(scrollregion = myCanvas.bbox('all')))
@@ -69,15 +69,15 @@ def chat_win(event=None):
     my_message = StringVar()
     my_message.set("")
 
-    client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)    # initialising scoket connection
     try:
-        client.connect((SERVER_IP,PORT))
-        client.send(USERNAME.encode('utf-8'))
+        client.connect((SERVER_IP,PORT))        # connecting to the server
+        client.send(USERNAME.encode('utf-8'))    # sending username to the server
 
-        recieving_thread = threading.Thread(target=recv_msg)
+        recieving_thread = threading.Thread(target=recv_msg)    # therading recieve message process to send and recieve messages parallely
         recieving_thread.start()
 
-    except Exception as error_code :
+    except Exception as error_code :            # exception handling on server connection and thread creation
         Label(msg_Frame, text = error_code , bg = "#aaa", fg="#a55", font=16).pack(anchor='center')
         myCanvas.yview_moveto(1)
 
@@ -88,37 +88,37 @@ def chat_win(event=None):
     send_btn = Button(win, text="Send", command=send_msg, padx=3)
     send_btn.place(x=445, y=388)
 
-    win.protocol("WM_DELETE_WINDOW", client_closing)
+    win.protocol("WM_DELETE_WINDOW", client_closing)    # discarding chat window 
     win.mainloop()
 
 def client_closing():
-    my_message.set("/exit")
+    my_message.set("/exit")    # close the client connection over sending message "/exit"
     send_msg()
     win.destroy()
     client.close()
 
 def send_msg(event=None):
-    message = my_message.get()
+    message = my_message.get()    # get message from the gui interface
     my_message.set("")
     if len(message)!=0:
         Label(msg_Frame, text=message, bg="lightgreen",fg='black',font=20).pack(anchor='e')
         myCanvas.yview_moveto(1)
         try:
-            msg_send = f"[ {USERNAME} ] : {message}".encode('utf-8')
+            msg_send = f"[ {USERNAME} ] : {message}".encode('utf-8') # bind username with message to send to server in format - " [username]:message "
             client.send(msg_send)
-        except Exception as error_code:
+        except Exception as error_code:            # error handling for message sending
             Label(msg_Frame, text = error_code , bg = "#aaa", fg="#a55", font=16).pack(anchor='center')
             myCanvas.yview_moveto(1)
 
 def recv_msg(event=None):
     while True:
         try:
-            msg_recv = client.recv(1024).decode('utf-8')
-        except Exception as error_code :
+            msg_recv = client.recv(1024).decode('utf-8')    # message recieve from server
+        except Exception as error_code :        # exception handling
             Label(msg_Frame, text = error_code , bg = "#aaa", fg="#a55", font=16).pack(anchor='center')
             myCanvas.yview_moveto(1)
 
-        if msg_recv:
+        if msg_recv:        # displaying recieved message
             if msg_recv[0]=="[" and msg_recv[-1]==']':
                 Label(msg_Frame, text = msg_recv , bg = "#ddd", fg="#aa4456", font=16).pack(anchor='center')
                 myCanvas.yview_moveto(1)
