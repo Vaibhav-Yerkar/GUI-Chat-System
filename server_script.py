@@ -1,8 +1,3 @@
-# YOU THERE, you little piece of shiit......
-# dont you dare do anything to any of this files
-# this is my beginner's peak , something i will never not be proud for..
-# TOUCH THEM AND YOU WILL DIE !!!!!
-
 
 import socket 
 import threading
